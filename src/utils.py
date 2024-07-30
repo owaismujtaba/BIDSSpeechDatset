@@ -206,7 +206,8 @@ def eegTransitionTriggerPoints(triggerArray):
     transitionPointsIndexes = np.array([0] + differenceArray.tolist())
     negDifferenceArray = np.where(np.diff(triggerArray) < 0)[0] + 1
     negTtransitionPointsIndexes = np.array([0] + differenceArray.tolist())
-    pdb.set_trace()
+    print(transitionPointsIndexes)
+    print(negTtransitionPointsIndexes)
     return transitionPointsIndexes
 
 def loadEdfFile(filepath):

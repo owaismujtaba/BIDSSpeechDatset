@@ -36,4 +36,4 @@ class EegData:
             self.timeStamps
         )
 
-        pdb.set_trace()
+        
