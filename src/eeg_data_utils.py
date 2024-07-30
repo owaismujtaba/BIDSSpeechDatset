@@ -1,5 +1,7 @@
 import src.config as config
-from src.utils import loadEdfFile
+from src.utils import loadEdfFile, eegNormalizeTriggers
+from src.utils import eegCorrectTriggers, eegTransitionTriggerPoints
+from src.utils import eegEventsMapping
 import pdb
 
 class EegData:
@@ -17,5 +19,21 @@ class EegData:
         self.samplingFrequency = self.rawData.info['sfreq']
         self.triggers = self.rawData['TRIG'][0][0]
         self.duration = self.rawData.n_times / self.samplingFrequency
-        self.timeStamps = self.rawData.times + self.rawData.info['meas_date'].timestamp()
+        self.timeStamps = self.rawData.times + self.startTime.timestamp()
         self.goodChannels = [item for item in self.channelNames if item not in self.badChannels]
+        self.processEegData()
+
+    def processEegData(self):
+        
+        self.triggers = eegNormalizeTriggers(self.triggers)
+        self.correctedTriggers = eegCorrectTriggers(self.triggers)
+        self.eegTriggerTransitionPoints = eegTransitionTriggerPoints(
+            self.correctedTriggers
+        )  
+        self.eegEvents = eegEventsMapping(
+            self.correctedTriggers, 
+            self.eegTriggerTransitionPoints, 
+            self.timeStamps
+        )
+
+        pdb.set_trace()
