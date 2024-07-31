@@ -1,63 +1,34 @@
 import mne
 import pyxdf
 import numpy as np
-
+from concurrent.futures import ThreadPoolExecutor
+import src.config as config
 import pdb
 
-def eegEventsMapping(triggerArray, triggerTransitionPoints, timestamps):
-    """
-    Maps EEG trigger values to their corresponding start and end points.
 
-    This function takes an array of trigger values, an array of trigger points (indexes where trigger 
-    values change), and an array of timestamps. It identifies events based on the trigger values and 
-    maps them to their start and end points. Each event is represented by its corresponding marker 
-    name, start timestamp, end timestamp, start index, end index, and duration.
 
-    Parameters:
-    triggerArray (np.ndarray): An array of trigger values recorded during the EEG session.
-    triggerTransitionPoints (np.ndarray): An array of indexes in the trigger values array where the trigger values change.
-    timestamps (np.ndarray): An array of timestamps corresponding to the trigger values.
+def findNearestIndex(audioTimestamps, marker):
+    idx = np.searchsorted(audioTimestamps, marker, side="left")
+    if idx == 0:
+        return 0
+    elif idx == len(audioTimestamps):
+        return len(audioTimestamps) - 1
+    else:
+        if abs(audioTimestamps[idx] - marker) < abs(audioTimestamps[idx - 1] - marker):
+            return idx
+        else:
+            return idx - 1
 
-    Returns:
-    List[List]: A list of lists, each representing an event with the following information:
-        - Marker name (str)
-        - Start timestamp (float)
-        - End timestamp (float)
-        - Start index (int)
-        - End index (int)
-        - Duration (int)
+def findNearestIndices(audioTimestamps, markerTimestamps):
+    audioTimestamps = np.sort(audioTimestamps)
+    nearestIndices = []
     
-    Example:
-    >>> triggerArray = np.array([0, 0, 1, 1, 0, 0, 2, 2, 0])
-    >>> triggerPoints = np.array([0, 2, 6])
-    >>> timestamps = np.array([0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
-    >>> EegEventsMapping(triggerArray, triggerPoints, timestamps)
-    [['StartReading', 0.0, 1.0, 0, 2, 2],
-     ['EndReading', 2.0, 3.0, 6, 8, 2]]
-    """
+    with ThreadPoolExecutor(max_workers=config.numWorkers) as executor:
+        futures = [executor.submit(findNearestIndex, audioTimestamps, marker) for marker in markerTimestamps]
+        for future in futures:
+            nearestIndices.append(future.result())
     
-    eventsStartEnd = []
-    start = None
-    block = None
-    for i in range(triggerTransitionPoints.shape[0] - 1):
-        
-        startIndex = triggerTransitionPoints[i]
-        endIndex = triggerTransitionPoints[i + 1]
-        event = triggerEncodings(triggerArray[startIndex])
-        if event != 'StartBlockSaying' and start == None:
-            start = 'done'
-            continue
-        if 'BlockSaying' in event:
-            block = 'Saying'
-        if 'BlockThinking' in event:
-            block = 'Thinking'
-        duration = endIndex - startIndex
-        if duration < 25:
-            continue
-        eventsStartEnd.append([event, block, timestamps[startIndex],  startIndex,  duration])
-        
-    return eventsStartEnd
-
+    return nearestIndices
 
 def triggerEncodings(code):
     """
@@ -105,9 +76,6 @@ def triggerEncodings(code):
     closestMarkerName = markerNames[closestCode]
     
     return closestMarkerName
-
-
-
 
 def eegNormalizeTriggers(triggerValues):
     """

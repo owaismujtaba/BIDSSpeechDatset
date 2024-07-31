@@ -1,6 +1,6 @@
 import src.config as config
 from src.utils import loadXdfFile
-from src.utils import adjustAudioTime
+from src.utils import adjustAudioTime, findNearestIndices
 import pdb
 
 class AudioDataProcessor:
@@ -18,39 +18,43 @@ class AudioDataProcessor:
         
         self.samplingFrequency = self.rawData[0][1]['info']['effective_srate']
         self.markers = self.rawData[0][0]['time_series']
-        self.markersTimeStamps = adjustAudioTime(self.rawData[0][0]['time_stamps'])
+        self.markersTimeStamps = self.rawData[0][0]['time_stamps']
         self.markersStartTime = self.markersTimeStamps[0]
         self.markersEndTime = self.markersTimeStamps[-1]
 
         self.audio = self.rawData[0][1]['time_series']
-        self.audioTimeStamps = adjustAudioTime(self.rawData[0][1]['time_stamps'])
+        self.audioTimeStamps = self.rawData[0][1]['time_stamps']
         self.audioStartTime = self.audioTimeStamps[0]
         self.audioEndTime = self.audioTimeStamps[-1]
-
         self.nMarkers = len(self.markers)
 
-    def cleanMarkers(self):
-        markers = []
-        start = None
-        block = None
-        event = None
-        for i in range(len(self.markers)):
-            marker = self.markers[i][0]
-            if marker != 'StartBlockSaying' and start == None:
-                start = 'done'
-                continue
+        self.mapAudioEvents()
 
+    def mapAudioEvents(self):
+        print('***************************Mapping Audio events***************************')
+        markersMappingIndexs = findNearestIndices(self.audioTimeStamps, self.markersTimeStamps)
+        events = []
+        block = None
+        for index in range(len(markersMappingIndexs)):
+            marker = self.markers[index][0]
             if 'BlockSaying' in marker:
-                block = 'Saying'
+                block = 'Overt'
             if 'BlockThinking' in marker:
-                block = 'Thinking'
+                block = 'Inert'
             if 'EndReading' in marker:
                 event = 'ITI'
             elif 'EndSaying' in marker:
                 event = 'Fixation'
             else:
                 event = marker
-            
-            markers.append([event, block, self.markersTimeStamps[i]])
+            onset = self.audioTimeStamps[markersMappingIndexs[index]]    
+            onsetIndex = markersMappingIndexs[index]
+            try:
+                duration = markersMappingIndexs[index+1] - onsetIndex
+            except:
+                duration = 0
+            events.append([event, block, onset, duration, onsetIndex])
+        self.audioEvents = events
+        print('***************************Audio events mapped***************************')  
 
-        self.markersNew = markers
+    
