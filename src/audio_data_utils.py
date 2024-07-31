@@ -3,7 +3,7 @@ from src.utils import loadXdfFile
 from src.utils import adjustAudioTime
 import pdb
 
-class AudioData:
+class AudioDataProcessor:
     def __init__(self, filepath):
         self.rawData = loadXdfFile(filepath)
         self.setupEegDataInfo()
@@ -28,4 +28,29 @@ class AudioData:
         self.audioEndTime = self.audioTimeStamps[-1]
 
         self.nMarkers = len(self.markers)
-        
+
+    def cleanMarkers(self):
+        markers = []
+        start = None
+        block = None
+        event = None
+        for i in range(len(self.markers)):
+            marker = self.markers[i][0]
+            if marker != 'StartBlockSaying' and start == None:
+                start = 'done'
+                continue
+
+            if 'BlockSaying' in marker:
+                block = 'Saying'
+            if 'BlockThinking' in marker:
+                block = 'Thinking'
+            if 'EndReading' in marker:
+                event = 'ITI'
+            elif 'EndSaying' in marker:
+                event = 'Fixation'
+            else:
+                event = marker
+            
+            markers.append([event, block, self.markersTimeStamps[i]])
+
+        self.markersNew = markers

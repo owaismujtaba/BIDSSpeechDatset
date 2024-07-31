@@ -37,16 +37,24 @@ def eegEventsMapping(triggerArray, triggerTransitionPoints, timestamps):
     """
     
     eventsStartEnd = []
-
+    start = None
+    block = None
     for i in range(triggerTransitionPoints.shape[0] - 1):
         
-        start = triggerTransitionPoints[i]
-        end = triggerTransitionPoints[i + 1]
-        event = triggerEncodings(triggerArray[start])
-        
-        if end - start < 25:
+        startIndex = triggerTransitionPoints[i]
+        endIndex = triggerTransitionPoints[i + 1]
+        event = triggerEncodings(triggerArray[startIndex])
+        if event != 'StartBlockSaying' and start == None:
+            start = 'done'
             continue
-        eventsStartEnd.append([event, timestamps[start], timestamps[end], start, end, end - start])
+        if 'BlockSaying' in event:
+            block = 'Saying'
+        if 'BlockThinking' in event:
+            block = 'Thinking'
+        duration = endIndex - startIndex
+        if duration < 25:
+            continue
+        eventsStartEnd.append([event, block, timestamps[startIndex],  startIndex,  duration])
         
     return eventsStartEnd
 
@@ -77,9 +85,9 @@ def triggerEncodings(code):
     
     markerNames = {
         255: 'StartReading',
-        224: 'EndReading',
+        224: 'ITI',#'EndReading',
         192: 'StartSaying',
-        160: 'EndSaying',
+        160: 'Fixation',#'EndSaying',
         128: 'StartBlockSaying',
         96: 'StartBlockThinking',
         64: 'EXPERIMENT_RESTART',
@@ -123,7 +131,7 @@ def eegNormalizeTriggers(triggerValues):
     >>> NormalizeEegTriggers(triggerValues)
     array([255, 204, 153, 102,  51])
     """
-    
+    print(f'****************Normalizing Triggers********************')
     triggerValues = triggerValues * -1
     triggerMin = np.min(triggerValues)
     triggerMax = np.max(triggerValues)
@@ -155,7 +163,7 @@ def eegCorrectTriggers(triggers):
     >>> CorrectEegTriggers(triggers)
     [8, 16, 96, 128]
     """
-
+    print(f'****************Correcting Triggers********************')
     correctCodings = {
         255: 255, 224: 224, 192: 192, 160: 160,
         128: 128, 96: 96, 64: 64, 32: 32, 16: 16, 8: 8
@@ -201,13 +209,10 @@ def eegTransitionTriggerPoints(triggerArray):
     >>> EegTransitionTriggerPoints(triggerArray)
     array([0, 2, 6])
     """
-    
+    print(f'**************** Calculating EEG Transition Indexes********************')
     differenceArray = np.where(np.diff(triggerArray) > 0)[0] + 1
     transitionPointsIndexes = np.array([0] + differenceArray.tolist())
-    negDifferenceArray = np.where(np.diff(triggerArray) < 0)[0] + 1
-    negTtransitionPointsIndexes = np.array([0] + differenceArray.tolist())
-    print(transitionPointsIndexes)
-    print(negTtransitionPointsIndexes)
+    
     return transitionPointsIndexes
 
 def loadEdfFile(filepath):

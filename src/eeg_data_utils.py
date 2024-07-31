@@ -4,7 +4,7 @@ from src.utils import eegCorrectTriggers, eegTransitionTriggerPoints
 from src.utils import eegEventsMapping
 import pdb
 
-class EegData:
+class EegDataProcessor:
     def __init__(self, filepath):
         self.rawData = loadEdfFile(filepath)
         self.setupEegDataInfo()
@@ -25,8 +25,8 @@ class EegData:
 
     def processEegData(self):
         
-        self.triggers = eegNormalizeTriggers(self.triggers)
-        self.correctedTriggers = eegCorrectTriggers(self.triggers)
+        self.triggersNormalized = eegNormalizeTriggers(self.triggers)
+        self.correctedTriggers = eegCorrectTriggers(self.triggersNormalized)
         self.eegTriggerTransitionPoints = eegTransitionTriggerPoints(
             self.correctedTriggers
         )  
