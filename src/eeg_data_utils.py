@@ -24,7 +24,7 @@ class EegDataProcessor:
         self.processEegData()
 
     def processEegData(self):
-        
+        print('***************************EEG Data Processing***************************')
         self.triggersNormalized = eegNormalizeTriggers(self.triggers)
         self.correctedTriggers = eegCorrectTriggers(self.triggersNormalized)
         self.eegTriggerTransitionPoints = eegTransitionTriggerPoints(
@@ -35,6 +35,7 @@ class EegDataProcessor:
             self.eegTriggerTransitionPoints, 
             self.timeStamps
         )
+        print('***************************EEG Data Processing Completed***************************')
 
     def mapEegEvents(self, triggerArray, triggerTransitionPoints, timestamps):
         """

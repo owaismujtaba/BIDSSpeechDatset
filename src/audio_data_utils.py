@@ -27,6 +27,7 @@ class AudioDataProcessor:
         self.audioStartTime = self.audioTimeStamps[0]
         self.audioEndTime = self.audioTimeStamps[-1]
         self.nMarkers = len(self.markers)
+        print('***************************Audio data loaded***************************')
 
         self.mapAudioEvents()
 
