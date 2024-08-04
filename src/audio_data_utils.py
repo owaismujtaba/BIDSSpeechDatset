@@ -34,6 +34,7 @@ class AudioDataProcessor:
     def mapAudioEvents(self):
         print('***************************Mapping Audio events***************************')
         markersMappingIndexs = findNearestIndices(self.audioTimeStamps, self.markersTimeStamps)
+        self.audioTimeStamps = adjustAudioTime(self.audioTimeStamps)
         events = []
         block = None
         for index in range(len(markersMappingIndexs)):

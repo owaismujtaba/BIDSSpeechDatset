@@ -5,9 +5,13 @@ from concurrent.futures import ThreadPoolExecutor
 import src.config as config
 import pdb
 
-
+def findClosestStartingIndex(timeStamps, time):
+    differences = np.abs(timeStamps - time)
+    closestIndex = np.argmin(differences)
+    return closestIndex
 
 def findNearestIndex(audioTimestamps, marker):
+    
     idx = np.searchsorted(audioTimestamps, marker, side="left")
     if idx == 0:
         return 0
