@@ -61,39 +61,39 @@ class EegAudioDataProcessor:
                 words = []
                 
                 for audioindex in range(len(audioEvents)):
-                audioEvent = audioEvents[audioindex][0].split(":")
-                try:
-                        word = audioEvent[1]
-                except:
-                        word = None
-                
-                audioEvent = audioEvent[0] 
-                block = audioEvents[audioindex][1]
-                audioOnsetIndex = audioEvents[audioindex][4]
-                audioOnsetTime = audioOnsetIndex/self.audioSampleRate
-                audioDuration = audioEvents[audioindex][3]/self.audioSampleRate
-
-                if 'StartReading' in audioEvent or 'StartSaying'in audioEvent:
-                        for eegIndex in range(audioEventTrackingIndex, len(eegEvents)):
-                        eegEvent = eegEvents[eegIndex][0]
-                        eegOnsetIndex = eegEvents[eegIndex][4]
-                        eegOnsetTime = eegOnsetIndex/self.eegSampleRate
-                        eegDuration = eegEvents[eegIndex][3]
+                        audioEvent = audioEvents[audioindex][0].split(":")
+                        try:
+                                word = audioEvent[1]
+                        except:
+                                word = None
                         
-                        if eegEvent == audioEvent:
-                                words.append(word)
-                                audioEventTrackingIndex = eegIndex + 1
-                                synchronizedEvents.append(
-                                [
-                                        eegOnsetTime, eegDuration, eegOnsetIndex, 
-                                        audioOnsetTime, audioDuration, audioOnsetIndex,
-                                        block, eegEvent, word
-                                ]
-                                )
-                                
-                                break
-                else:
-                        continue
+                        audioEvent = audioEvent[0] 
+                        block = audioEvents[audioindex][1]
+                        audioOnsetIndex = audioEvents[audioindex][4]
+                        audioOnsetTime = audioOnsetIndex/self.audioSampleRate
+                        audioDuration = audioEvents[audioindex][3]/self.audioSampleRate
+
+                        if 'StartReading' in audioEvent or 'StartSaying'in audioEvent:
+                                for eegIndex in range(audioEventTrackingIndex, len(eegEvents)):
+                                        eegEvent = eegEvents[eegIndex][0]
+                                        eegOnsetIndex = eegEvents[eegIndex][4]
+                                        eegOnsetTime = eegOnsetIndex/self.eegSampleRate
+                                        eegDuration = eegEvents[eegIndex][3]
+                                        
+                                        if eegEvent == audioEvent:
+                                                words.append(word)
+                                                audioEventTrackingIndex = eegIndex + 1
+                                                synchronizedEvents.append(
+                                                [
+                                                        eegOnsetTime, eegDuration, eegOnsetIndex, 
+                                                        audioOnsetTime, audioDuration, audioOnsetIndex,
+                                                        block, eegEvent, word
+                                                ]
+                                                )
+                                                
+                                        break
+                        else:
+                                continue
                 
                 self.synchronizedEvents = synchronizedEvents
 
@@ -112,22 +112,22 @@ class EegAudioDataProcessor:
                 os.makedirs(self.destinationDir, exist_ok=True)
 
                 with open(fileNameWithPath, "w", newline="") as tsvfile:
-                writer = csv.DictWriter(tsvfile, fieldnames=bidsHeaders, delimiter='\t')
-                writer.writeheader()
+                        writer = csv.DictWriter(tsvfile, fieldnames=bidsHeaders, delimiter='\t')
+                        writer.writeheader()
 
-                for row in self.synchronizedEvents:
-                        event = {
-                        "onset": row[0],  
-                        "duration": row[1],
-                        "eegOnsetIndex": row[2], 
-                        "audioOnset": row[3],  
-                        "audioDuration": row[4],  
-                        "audioOnsetIndex": row[5],
-                        "block": row[6],
-                        "trialType": row[7],
-                        "word": row[8]
-                        }
-                        writer.writerow(event)
+                        for row in self.synchronizedEvents:
+                                event = {
+                                "onset": row[0],  
+                                "duration": row[1],
+                                "eegOnsetIndex": row[2], 
+                                "audioOnset": row[3],  
+                                "audioDuration": row[4],  
+                                "audioOnsetIndex": row[5],
+                                "block": row[6],
+                                "trialType": row[7],
+                                "word": row[8]
+                                }
+                                writer.writerow(event)
                 
                 print('***************************Events written to file***************************')
         
