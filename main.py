@@ -4,8 +4,8 @@ from src.eeg_audio_data import EegAudioDataProcessor
 
 import pdb
 
-filepathEeg = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F10/VCV/GOMEZCARMONA~ _67e7880a-4065-4e37-a165-58982f5f8c3c.edf'
-filepathAudio = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F10/VCV/sub-MartaGomezCarmona_ses-VCV_Ses01_task-Default_run-001_eeg.xdf'
+filepathEeg = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F01/VCV/RAELARRIBAS~ V_7f515438-77ab-4fcd-9b71-60915d793845.edf'
+filepathAudio = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F01/VCV/sub-VanesaRaelArribas_ses-Ses02_task-Default_run-001_eeg.xdf'
 
 eegData = EegDataProcessor(filepathEeg)
 audioData = AudioDataProcessor(filepathAudio)

@@ -1,13 +1,11 @@
 import src.config as config
-
 from src.utils import findClosestStartingIndex
+
 import csv
 import pdb
 import os
 from pathlib import Path
 import mne
-
-
 import json
 import numpy as np
 
@@ -22,15 +20,16 @@ class EegAudioDataProcessor:
         """
         self.eegData = eegData
         self.audioData = audioData
+        self.audioSampleRate = int(self.audioData.samplingFrequency)
+        self.eegSampleRate = int(self.eegData.samplingFrequency)
 
-        self.subjectID = 'F10'
-        self.sessionID = '01'
 
         self.subjectID = 'F01'
         self.sessionID = '02'
         self.taskName = 'VCV'
         self.runID = '01'
         self.fileName = f'sub-{self.subjectID}_ses-{self.sessionID}_task-{self.taskName}_run-{self.runID}'
+        self.destinationDir = Path(f'{config.bidsDir}/{self.subjectID}/eeg')
         self.synchronizeEegAudioEvents()
         self.eventsFileWriter()
         self.createBidsFifFile()
@@ -54,7 +53,7 @@ class EegAudioDataProcessor:
 
         eegEventsTimestamps = np.array([row[2] for row in eegEvents])
         audioEventsStartTime = audioEvents[0][2]        
-        pdb.set_trace() 
+        
         closestStartingPointInEeg = findClosestStartingIndex(eegEventsTimestamps, audioEventsStartTime)
         eegEvents = eegEvents[closestStartingPointInEeg:]
         
@@ -71,23 +70,27 @@ class EegAudioDataProcessor:
               
             audioEvent = audioEvent[0] 
             block = audioEvents[audioindex][1]
-            audioOnset = audioEvents[audioindex][2]
             audioOnsetIndex = audioEvents[audioindex][4]
-            audioDuration = audioEvents[audioindex][3]
+            audioOnsetTime = audioOnsetIndex/self.audioSampleRate
+            audioDuration = audioEvents[audioindex][3]/self.audioSampleRate
+
             if 'StartReading' in audioEvent or 'StartSaying'in audioEvent:
                 for eegIndex in range(audioEventTrackingIndex, len(eegEvents)):
                     eegEvent = eegEvents[eegIndex][0]
-                    eegOnset = eegEvents[eegIndex][2]/self.eegData.samplingFrequency
                     eegOnsetIndex = eegEvents[eegIndex][4]
+                    eegOnsetTime = eegOnsetIndex/self.eegSampleRate
                     eegDuration = eegEvents[eegIndex][3]
+                    
                     if eegEvent == audioEvent:
                         words.append(word)
                         audioEventTrackingIndex = eegIndex + 1
-                        synchronizedEvents.append([eegEvent, block, audioOnsetIndex/self.audioData.samplingFrequency, 
-                                                   audioDuration/self.audioData.samplingFrequency, audioOnsetIndex, 
-                                                   eegOnsetIndex/self.eegData.samplingFrequency, 
-                                                   eegDuration/self.eegData.samplingFrequency, eegOnsetIndex, word 
-                        ])
+                        synchronizedEvents.append(
+                            [
+                                eegOnsetTime, eegDuration, eegOnsetIndex, 
+                                audioOnsetTime, audioDuration, audioOnsetIndex,
+                                block, eegEvent, word
+                            ]
+                        )
                         
                         break
             else:
@@ -96,7 +99,6 @@ class EegAudioDataProcessor:
         self.synchronizedEvents = synchronizedEvents
 
         print('***************************EEG and Audio Events synchronized***************************') 
-
 
     def eventsFileWriter(self):
         """
@@ -107,43 +109,37 @@ class EegAudioDataProcessor:
         print('***************************Writing events to file***************************')
         fileName = self.fileName + '_events.tsv'
         bidsHeaders = config.bidsEventsHeader
-        
-        with open(fileName, "w", newline="") as tsvfile:
+        fileNameWithPath = Path(self.destinationDir, fileName)
+        os.makedirs(self.destinationDir, exist_ok=True)
+
+        with open(fileNameWithPath, "w", newline="") as tsvfile:
             writer = csv.DictWriter(tsvfile, fieldnames=bidsHeaders, delimiter='\t')
             writer.writeheader()
 
             for row in self.synchronizedEvents:
                 event = {
-                    "onset": row[5],  
-                    "duration": row[6], 
-                    "trial_type": row[0],
-                    "block": row[1],
-                    "audioOnset": row[2],  
-                    "audioDuration": row[3],  
-                    "audioOnsetIndex": row[4],
-                    "eegOnsetIndex": row[7],
+                    "onset": row[0],  
+                    "duration": row[1],
+                    "eegOnsetIndex": row[2], 
+                    "audioOnset": row[3],  
+                    "audioDuration": row[4],  
+                    "audioOnsetIndex": row[5],
+                    "block": row[6],
+                    "trialType": row[7],
                     "word": row[8]
                 }
                 writer.writerow(event)
         
         print('***************************Events written to file***************************')
 
-
-
-
-
     def createBidsFifFile(self):
         print('***************************Creating BIDS FIF file***************************')
         rawData = self.eegData.rawData.get_data()
         info  = self.eegData.rawData.info
-        
-        rootDir = config.bidsDir
-        os.makedirs(rootDir, exist_ok=True)
-        destinationDir = f'{rootDir}/{self.subjectID}/eeg'
-        destinationPath = Path(destinationDir)
-        os.makedirs(destinationPath, exist_ok=True)
 
-        filepath = Path(destinationDir, self.fileName + '_eeg.fif')
-
+        os.makedirs(self.destinationDir, exist_ok=True)
+        filepath = Path(self.destinationDir, self.fileName + '_eeg.fif')
         newData = mne.io.RawArray(rawData, info)
         newData.save(filepath, overwrite=True)
+
+

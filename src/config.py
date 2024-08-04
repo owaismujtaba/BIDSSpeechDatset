@@ -6,7 +6,7 @@ bidsDir = Path(currDir, 'BIDS')
 numWorkers = 20
 
 bidsEventsHeader = [
-    'onset', 'duration', 'trial_type', 'block', 'audioOnset',
-    'audioDuration', 'audioOnsetIndex', 'eegOnsetIndex', 'word'
+    'onset', 'duration', 'eegOnsetIndex', 
+    'audioOnset', 'audioDuration', 'audioOnsetIndex',
+    'block', 'trialType', 'word'
 ]
-
