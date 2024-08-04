@@ -189,7 +189,7 @@ def eegTransitionTriggerPoints(triggerArray):
 
 def loadEdfFile(filepath):
     print(f'*******************Loading {filepath} File*******************')
-    raw = mne.io.read_raw_edf(filepath, preload=True)
+    raw = mne.io.read_raw_edf(filepath, preload=True, verbose=False)
     print(f'*******************Loaded {filepath} File*******************')
 
     return raw

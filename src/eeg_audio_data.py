@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import mne
 import json
+from datetime import datetime
 import numpy as np
 
 class EegAudioDataProcessor:
@@ -33,6 +34,7 @@ class EegAudioDataProcessor:
                 self.synchronizeEegAudioEvents()
                 self.eventsFileWriter()
                 self.createBidsFifFile()
+                self.createJsonFile()
 
         def synchronizeEegAudioEvents(self):
                 """
@@ -58,7 +60,6 @@ class EegAudioDataProcessor:
                 
                 audioEventTrackingIndex = 0
                 synchronizedEvents = []
-                words = []
                 
                 for audioindex in range(len(audioEvents)):
                         audioEvent = audioEvents[audioindex][0].split(":")
@@ -81,14 +82,11 @@ class EegAudioDataProcessor:
                                         eegDuration = eegEvents[eegIndex][3]
                                         
                                         if eegEvent == audioEvent:
-                                                words.append(word)
                                                 audioEventTrackingIndex = eegIndex + 1
                                                 synchronizedEvents.append(
-                                                [
-                                                        eegOnsetTime, eegDuration, eegOnsetIndex, 
+                                                        [eegOnsetTime, eegDuration, eegOnsetIndex, 
                                                         audioOnsetTime, audioDuration, audioOnsetIndex,
-                                                        block, eegEvent, word
-                                                ]
+                                                        block, eegEvent, word]
                                                 )
                                                 
                                         break
@@ -110,7 +108,7 @@ class EegAudioDataProcessor:
                 bidsHeaders = config.bidsEventsHeader
                 fileNameWithPath = Path(self.destinationDir, fileName)
                 os.makedirs(self.destinationDir, exist_ok=True)
-
+                print(len(self.synchronizedEvents))
                 with open(fileNameWithPath, "w", newline="") as tsvfile:
                         writer = csv.DictWriter(tsvfile, fieldnames=bidsHeaders, delimiter='\t')
                         writer.writeheader()
@@ -128,17 +126,42 @@ class EegAudioDataProcessor:
                                 "word": row[8]
                                 }
                                 writer.writerow(event)
-                
+
                 print('***************************Events written to file***************************')
         
         def createBidsFifFile(self):
                 print('***************************Creating BIDS FIF file***************************')
                 rawData = self.eegData.rawData.get_data()
-                info  = self.eegData.rawData.info
+                self.info  = self.eegData.rawData.info
 
                 os.makedirs(self.destinationDir, exist_ok=True)
                 filepath = Path(self.destinationDir, self.fileName + '_eeg.fif')
-                newData = mne.io.RawArray(rawData, info)
+                newData = mne.io.RawArray(rawData, self.info)
                 newData.save(filepath, overwrite=True)
-        def createJsonFile():
-                pass
+        
+        def createJsonFile(self):
+                print('***************************Creating JSON file***************************')
+                filepath = Path(self.destinationDir, self.fileName + '_eeg.json')
+                metaData = {
+                        'creation_date': self.info['meas_date'].strftime('%Y-%m-%dT%H:%M:%S'),
+                        'clean_date': str(datetime.now()),
+                        'subject_id': self.subjectID,
+                        'session_id': self.sessionID,
+                        'run_id': self.runID,
+                        'task_name': self.taskName,
+                        'eeg_sampling_rate': self.eegSampleRate,
+                        'audio_sampling_rate': self.audioSampleRate,
+                        'number_of_channels': len(self.info['ch_names']),
+                        'highpass': self.info['highpass'],
+                        'lowpass': self.info['lowpass'],
+                        'bads': self.info['bads'],
+                        'Institute': 'CITIC-UGR, University of Granada',
+                        'Address': 'Calle Periodista Rafael Gómez Montero 2, 18014, Granada',
+                        'Authors': 'Jose Andres, Owais Mujtaba',
+                        'eeg_channels': self.info['ch_names'],
+                }
+
+                with open(filepath, 'w') as jsonFile:
+                        json.dump(metaData, jsonFile, indent=4)
+
+                print('***************************JSON file created***************************')
