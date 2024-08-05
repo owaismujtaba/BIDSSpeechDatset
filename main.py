@@ -4,11 +4,11 @@ from src.eeg_audio_data import EegAudioDataProcessor
 
 import pdb
 
-filepathEeg = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F05/VCV/Day01/JURCICIENE~ ED_30db7f57-f064-4c1c-a2ac-86eeea186668.edf'
-filepathAudio = '/home/owaismujtaba/projects/BIDSSpeechDatset/rawData/F05/VCV/Day01/sub-Edita_ses-S002_task-Default_run-001_eeg.xdf'
-subjectID = 'F05'
+filepathEeg = '/home/owais/BIDSSpeechDatset/rawData/F09/VCV/JIMÉNEZÁLVAREZ_605b2177-7b18-4d5b-a6df-01fdc6572770.edf'
+filepathAudio = '/home/owais/BIDSSpeechDatset/rawData/F09/VCV/sub-AntoniaJimenezAlvarez_ses-VCV_Ses01_task-Default_run-001_eeg.xdf'
+subjectID = 'F09'
 sessionID = '01'
-runID = '02'
+runID = '01'
 taskName = 'VCV'
 
 eegData = EegDataProcessor(filepathEeg)

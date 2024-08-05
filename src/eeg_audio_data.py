@@ -8,6 +8,7 @@ from pathlib import Path
 import mne
 import json
 from datetime import datetime
+from scipy.io.wavfile import write
 import numpy as np
 
 class EegAudioDataProcessor:
@@ -32,9 +33,10 @@ class EegAudioDataProcessor:
                 self.fileName = f'sub-{self.subjectID}_ses-{self.sessionID}_task-{self.taskName}_run-{self.runID}'
                 self.destinationDir = Path(f'{config.bidsDir}/{self.subjectID}/eeg')
                 self.synchronizeEegAudioEvents()
-                self.eventsFileWriter()
-                self.createBidsFifFile()
+                self.createEventsFile()
+                self.createFifFile()
                 self.createJsonFile()
+                self.createAudio()
 
         def synchronizeEegAudioEvents(self):
                 """
@@ -95,10 +97,11 @@ class EegAudioDataProcessor:
                                 continue
                 
                 self.synchronizedEvents = synchronizedEvents
+                self.nTrials = len(self.synchronizedEvents)
 
                 print('***************************EEG and Audio Events synchronized***************************') 
 
-        def eventsFileWriter(self):
+        def createEventsFile(self):
                 """
                 Write synchronized events to a file.
                 Returns:
@@ -132,7 +135,16 @@ class EegAudioDataProcessor:
 
                 print('***************************Events written to file***************************')
         
-        def createBidsFifFile(self):
+        def createAudio(self):
+                print('***************************Creating Audio file***************************')
+                destinationDir = Path(self.destinationDir, 'audio')
+                os.makedirs(destinationDir, exist_ok=True)
+                audioData = self.audioData.audio
+                destinationPath = Path(destinationDir, self.fileName+'_.wav')
+                write(destinationPath, self.audioSampleRate, audioData)
+                print('***************************Audio file created***************************')
+
+        def createFifFile(self):
                 print('***************************Creating BIDS FIF file***************************')
                 rawData = self.eegData.rawData.get_data()
                 self.info  = self.eegData.rawData.info
@@ -152,6 +164,7 @@ class EegAudioDataProcessor:
                         'session_id': self.sessionID,
                         'run_id': self.runID,
                         'task_name': self.taskName,
+                        'num_trials':self.nTrials,
                         'eeg_sampling_rate': self.eegSampleRate,
                         'audio_sampling_rate': self.audioSampleRate,
                         'number_of_channels': len(self.info['ch_names']),

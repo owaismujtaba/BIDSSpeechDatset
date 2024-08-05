@@ -110,7 +110,7 @@ def eegNormalizeTriggers(triggerValues):
     
     normalizedTriggers = (triggerValues - triggerMin) / (triggerMax - triggerMin) * 255
     normalizedTriggers = np.round(normalizedTriggers).astype(int)
-    
+    print('***************************Triggeres Normalized**********************')
     return normalizedTriggers
 
 def eegCorrectTriggers(triggers):
