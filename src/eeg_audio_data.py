@@ -49,6 +49,7 @@ class EegAudioDataProcessor:
                 """
                 
                 print('***************************Synchronizing EEG and Audio Events***************************')
+                print(f'Processing for {self.fileName}')
                 eegEvents = self.eegData.eegEvents
                 audioEvents = self.audioData.audioEvents
 
@@ -60,19 +61,18 @@ class EegAudioDataProcessor:
                 
                 audioEventTrackingIndex = 0
                 synchronizedEvents = []
-                
-                for audioindex in range(len(audioEvents)):
-                        audioEvent = audioEvents[audioindex][0].split(":")
+                for audioIndex in range(len(audioEvents)):
+                        audioEvent = audioEvents[audioIndex][0].split(":")
                         try:
                                 word = audioEvent[1]
                         except:
                                 word = None
                         
                         audioEvent = audioEvent[0] 
-                        block = audioEvents[audioindex][1]
-                        audioOnsetIndex = audioEvents[audioindex][4]
+                        block = audioEvents[audioIndex][1]
+                        audioOnsetIndex = audioEvents[audioIndex][4]
                         audioOnsetTime = audioOnsetIndex/self.audioSampleRate
-                        audioDuration = audioEvents[audioindex][3]/self.audioSampleRate
+                        audioDuration = audioEvents[audioIndex][3]/self.audioSampleRate
 
                         if 'StartReading' in audioEvent or 'StartSaying'in audioEvent:
                                 for eegIndex in range(audioEventTrackingIndex, len(eegEvents)):
@@ -86,10 +86,11 @@ class EegAudioDataProcessor:
                                                 synchronizedEvents.append(
                                                         [eegOnsetTime, eegDuration, eegOnsetIndex, 
                                                         audioOnsetTime, audioDuration, audioOnsetIndex,
+                                                        eegEvents[eegIndex][2], audioEvents[audioIndex][2],
                                                         block, eegEvent, word]
                                                 )
                                                 
-                                        break
+                                                break
                         else:
                                 continue
                 
