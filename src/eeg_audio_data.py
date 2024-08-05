@@ -122,9 +122,11 @@ class EegAudioDataProcessor:
                                 "audioOnset": row[3],  
                                 "audioDuration": row[4],  
                                 "audioOnsetIndex": row[5],
-                                "block": row[6],
-                                "trialType": row[7],
-                                "word": row[8]
+                                "eegOnsetUnixTime": row[6],
+                                "audioOnsetUnixTime": row[7],
+                                "block": row[8],
+                                "trialType": row[9],
+                                "word": row[10]
                                 }
                                 writer.writerow(event)
 
