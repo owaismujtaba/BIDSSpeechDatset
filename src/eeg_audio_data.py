@@ -31,12 +31,12 @@ class EegAudioDataProcessor:
                 self.taskName = taskName
                 self.runID = runID
                 self.fileName = f'sub-{self.subjectID}_ses-{self.sessionID}_task-{self.taskName}_run-{self.runID}'
-                self.destinationDir = Path(f'{config.bidsDir}/{self.subjectID}/eeg')
+                self.destinationDir = Path(f'{config.bidsDir}/{self.subjectID}')
                 self.synchronizeEegAudioEvents()
-                self.createEventsFile()
-                self.createFifFile()
-                self.createJsonFile()
-                self.createAudio()
+                #self.createEventsFile()
+                #self.createFifFile()
+                #self.createJsonFile()
+                #self.createAudio()
 
         def synchronizeEegAudioEvents(self):
                 """
@@ -110,9 +110,10 @@ class EegAudioDataProcessor:
                 print('***************************Writing events to file***************************')
                 fileName = self.fileName + '_events.tsv'
                 bidsHeaders = config.bidsEventsHeader
-                fileNameWithPath = Path(self.destinationDir, fileName)
-                os.makedirs(self.destinationDir, exist_ok=True)
-                print(len(self.synchronizedEvents))
+                destinationDir = Path(self.destinationDir, 'eeg')
+                os.makedirs(destinationDir, exist_ok=True)
+                fileNameWithPath = Path(destinationDir, fileName)       
+                
                 with open(fileNameWithPath, "w", newline="") as tsvfile:
                         writer = csv.DictWriter(tsvfile, fieldnames=bidsHeaders, delimiter='\t')
                         writer.writeheader()
@@ -148,15 +149,18 @@ class EegAudioDataProcessor:
                 print('***************************Creating BIDS FIF file***************************')
                 rawData = self.eegData.rawData.get_data()
                 self.info  = self.eegData.rawData.info
-
-                os.makedirs(self.destinationDir, exist_ok=True)
-                filepath = Path(self.destinationDir, self.fileName + '_eeg.fif')
-                newData = mne.io.RawArray(rawData, self.info)
-                newData.save(filepath, overwrite=True)
+                destinationDir = Path(self.destinationDir, 'eeg')
+                os.makedirs(destinationDir, exist_ok=True)
+                filepath = Path(destinationDir, self.fileName + '_eeg.fif')
+                self.newData = mne.io.RawArray(rawData, self.info)
+                self.newData.save(filepath, overwrite=True)
+                print('***************************BIDS FIF file created***************************')
         
         def createJsonFile(self):
                 print('***************************Creating JSON file***************************')
-                filepath = Path(self.destinationDir, self.fileName + '_eeg.json')
+                destinationDir = Path(self.destinationDir, 'eeg')
+                os.makedirs(destinationDir, exist_ok=True)
+                filepath = Path(destinationDir, self.fileName + '_eeg.json')
                 metaData = {
                         'creation_date': self.info['meas_date'].strftime('%Y-%m-%dT%H:%M:%S'),
                         'clean_date': str(datetime.now()),
