@@ -22,7 +22,7 @@ class EegAudioDataProcessor:
                 """
                 self.eegData = eegData
                 self.audioData = audioData
-                self.audioSampleRate = int(self.audioData.samplingFrequency)
+                self.audioSampleRate = 44100
                 self.eegSampleRate = int(self.eegData.samplingFrequency)
 
 
@@ -30,13 +30,13 @@ class EegAudioDataProcessor:
                 self.sessionID = sessionID
                 self.taskName = taskName
                 self.runID = runID
-                self.fileName = f'sub-{self.subjectID}_ses-{self.sessionID}_task-{self.taskName}_run-{self.runID}'
-                self.destinationDir = Path(f'{config.bidsDir}/{self.subjectID}')
+                self.fileName = f'{self.subjectID}_ses-{self.sessionID}_task-{self.taskName}_run-{self.runID}'
+                self.destinationDir = Path(config.bidsDir, self.subjectID)
                 self.synchronizeEegAudioEvents()
-                #self.createEventsFile()
-                #self.createFifFile()
-                #self.createJsonFile()
-                #self.createAudio()
+                self.createEventsFile()
+                self.createFifFile()
+                self.createJsonFile()
+                self.createAudio()
 
         def synchronizeEegAudioEvents(self):
                 """
@@ -93,8 +93,6 @@ class EegAudioDataProcessor:
                                                 )
                                                 
                                                 break
-                        else:
-                                continue
                 
                 self.synchronizedEvents = synchronizedEvents
                 self.nTrials = len(self.synchronizedEvents)
@@ -103,12 +101,13 @@ class EegAudioDataProcessor:
 
         def createEventsFile(self):
                 """
-                Write synchronized events to a file.
+                Write synchronized events to a file, that contains onset, duration, trial type, block and audio
+                info as well 
                 Returns:
                 None
                 """
                 print('***************************Writing events to file***************************')
-                fileName = self.fileName + '_events.tsv'
+                fileName = self.fileName + '.tsv'
                 bidsHeaders = config.bidsEventsHeader
                 destinationDir = Path(self.destinationDir, 'eeg')
                 os.makedirs(destinationDir, exist_ok=True)
@@ -141,7 +140,7 @@ class EegAudioDataProcessor:
                 destinationDir = Path(self.destinationDir, 'audio')
                 os.makedirs(destinationDir, exist_ok=True)
                 audioData = self.audioData.audio
-                destinationPath = Path(destinationDir, self.fileName+'_.wav')
+                destinationPath = Path(destinationDir, self.fileName+'.wav')
                 write(destinationPath, self.audioSampleRate, audioData)
                 print('***************************Audio file created***************************')
 
@@ -151,7 +150,7 @@ class EegAudioDataProcessor:
                 self.info  = self.eegData.rawData.info
                 destinationDir = Path(self.destinationDir, 'eeg')
                 os.makedirs(destinationDir, exist_ok=True)
-                filepath = Path(destinationDir, self.fileName + '_eeg.fif')
+                filepath = Path(destinationDir, self.fileName + '.fif')
                 self.newData = mne.io.RawArray(rawData, self.info)
                 self.newData.save(filepath, overwrite=True)
                 print('***************************BIDS FIF file created***************************')
@@ -160,7 +159,7 @@ class EegAudioDataProcessor:
                 print('***************************Creating JSON file***************************')
                 destinationDir = Path(self.destinationDir, 'eeg')
                 os.makedirs(destinationDir, exist_ok=True)
-                filepath = Path(destinationDir, self.fileName + '_eeg.json')
+                filepath = Path(destinationDir, self.fileName + '.json')
                 metaData = {
                         'creation_date': self.info['meas_date'].strftime('%Y-%m-%dT%H:%M:%S'),
                         'clean_date': str(datetime.now()),
@@ -168,7 +167,7 @@ class EegAudioDataProcessor:
                         'session_id': self.sessionID,
                         'run_id': self.runID,
                         'task_name': self.taskName,
-                        'num_trials':self.nTrials,
+                        'num_of_trials':self.nTrials,
                         'eeg_sampling_rate': self.eegSampleRate,
                         'audio_sampling_rate': self.audioSampleRate,
                         'number_of_channels': len(self.info['ch_names']),
@@ -177,7 +176,7 @@ class EegAudioDataProcessor:
                         'bads': self.info['bads'],
                         'Institute': 'CITIC-UGR, University of Granada',
                         'Address': 'Calle Periodista Rafael Gómez Montero 2, 18014, Granada',
-                        'Authors': 'Jose Andres, Owais Mujtaba',
+                        'Authors': 'Jose Andres, Owais Mujtaba, Marc Ouellet',
                         'eeg_channels': self.info['ch_names'],
                 }
 

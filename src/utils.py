@@ -218,6 +218,9 @@ def loadXdfFile(filepath):
     return streams, header
 
 def adjustAudioTime(unixTimestamps):
-    gap = 2
+    if config.adjustTime:
+        gap = 2
+    else:   
+        gap = 0
     gapUnix = gap * 3600
     return unixTimestamps + gapUnix

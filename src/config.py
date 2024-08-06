@@ -11,3 +11,5 @@ bidsEventsHeader = [
     'eegOnsetUnixTime', 'audioOnsetUnixTime',
     'block', 'trialType', 'word'
 ]
+
+adjustTime = True
