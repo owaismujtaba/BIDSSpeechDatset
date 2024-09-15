@@ -54,11 +54,11 @@ class EegDataProcessor:
         Returns:
         List[List]: A list of lists, each representing an event with the following information:
                 - Marker name (str)
+                - Block type (Over or Inert)
                 - Start timestamp (float)
-                - End timestamp (float)
-                - Start index (int)
-                - End index (int)
+                - Onset (Onset of eeg event)
                 - Duration (int)
+                - OnsetIndex (eeg onset Index)
             
         Example:
         >>> triggerArray = np.array([0, 0, 1, 1, 0, 0, 2, 2, 0])
