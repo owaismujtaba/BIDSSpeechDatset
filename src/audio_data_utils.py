@@ -58,5 +58,6 @@ class AudioDataProcessor:
             events.append([event, block, onset, duration, onsetIndex])
         self.audioEvents = events
         print('***************************Audio events mapped***************************')  
+        
 
     
