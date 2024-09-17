@@ -21,6 +21,7 @@ class EegDataProcessor:
         self.duration = self.rawData.n_times / self.samplingFrequency
         self.timeStamps = self.rawData.times + self.startTime.timestamp()
         self.goodChannels = [item for item in self.channelNames if item not in self.badChannels]
+        self.eegRawData = self.rawData.get_data()[0]
         self.processEegData()
 
     def processEegData(self):

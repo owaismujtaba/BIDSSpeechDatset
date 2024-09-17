@@ -1,6 +1,7 @@
 import mne
 import pyxdf
 import numpy as np
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 import src.config as config
 import pdb
@@ -217,10 +218,10 @@ def loadXdfFile(filepath):
 
     return streams, header
 
-def adjustAudioTime(unixTimestamps):
-    if config.adjustTime:
-        gap = 2
-    else:   
-        gap = 0
-    gapUnix = gap * 3600
+def adjustAudioTime(unixTimestamps, timeDifference):
+    gapUnix = timeDifference * 3600
     return unixTimestamps + gapUnix
+
+def unixToRealTime(unix_time):
+    readable_time = datetime.utcfromtimestamp(unix_time)
+    return readable_time.strftime('%Y-%m-%d %H:%M:%S')

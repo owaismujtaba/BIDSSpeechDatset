@@ -18,23 +18,24 @@ class AudioDataProcessor:
         
         self.samplingFrequency = self.rawData[0][1]['info']['effective_srate']
         self.markers = self.rawData[0][0]['time_series']
-        self.markersTimeStamps = self.rawData[0][0]['time_stamps']
-        self.markersStartTime = self.markersTimeStamps[0]
-        self.markersEndTime = self.markersTimeStamps[-1]
-
         self.audio = self.rawData[0][1]['time_series']
+        self.markersTimeStamps = self.rawData[0][0]['time_stamps']
         self.audioTimeStamps = self.rawData[0][1]['time_stamps']
-        self.audioStartTime = self.audioTimeStamps[0]
-        self.audioEndTime = self.audioTimeStamps[-1]
         self.nMarkers = len(self.markers)
         print('***************************Audio data loaded***************************')
-
+        
         self.mapAudioEvents()
 
-    def mapAudioEvents(self):
+    def mapAudioEvents(self, timeDifference=config.timeDifference):
         print('***************************Mapping Audio events***************************')
         markersMappingIndexs = findNearestIndices(self.audioTimeStamps, self.markersTimeStamps)
-        self.audioTimeStamps = adjustAudioTime(self.audioTimeStamps)
+        self.audioTimeStamps = adjustAudioTime(self.audioTimeStamps, timeDifference)
+        self.audioStartTime = self.audioTimeStamps[0]
+        self.audioEndTime = self.audioTimeStamps[-1]
+        self.audioDuration = self.audioEndTime - self.audioStartTime
+        self.markersTimeStamps = adjustAudioTime(self.markersTimeStamps, timeDifference)
+        self.markersStartTime = self.markersTimeStamps[0]
+        self.markersEndTime = self.markersTimeStamps[-1]
         events = []
         block = None
         for index in range(len(markersMappingIndexs)):

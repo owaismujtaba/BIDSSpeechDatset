@@ -14,7 +14,7 @@ from mne_bids import BIDSPath, write_raw_bids
 
 class EegAudioDataProcessor:
 
-    def __init__(self, eegData, audioData, subjectID, sessionID, runID, taskName):
+    def __init__(self, eegData, audioData, subjectID='01', sessionID='01', runID='01', taskName='VCV'):
         """
         Initialize the class with EEG and audio data.
 
@@ -29,6 +29,17 @@ class EegAudioDataProcessor:
         self.eegData = eegData
         self.audioData = audioData
         self.audioSampleRate = 44100
+
+        self.setUpBidsInfo(subjectID, sessionID, runID, taskName)
+        self.synchronizeEegAudioEvents()
+        
+        if not config.use_gui:
+            self.createAnnotations()
+            self.createEDFFile()
+            self.createAudio()
+            self.createEventsFileForAudio()
+
+    def setUpBidsInfo(self, subjectID, sessionID, runID, taskName):
         self.eegSampleRate = int(self.eegData.samplingFrequency)
         self.info = self.eegData.rawData.info
 
@@ -42,15 +53,7 @@ class EegAudioDataProcessor:
         self.bidsPath = BIDSPath(
             subject=self.subjectID, session=self.sessionID,
             task='VCV', run='01', datatype='eeg', root=config.bidsDir
-        )
-
-        self.synchronizeEegAudioEvents()
-        self.createAnnotations()
-        self.createEDFFile()
-        self.createAudio()
-        self.createEventsFileForAudio()
-        #self.createJsonFile()
-        
+        ) 
 
     def ensureDirectoryExists(self, path):
         """Ensure that the given directory exists.
