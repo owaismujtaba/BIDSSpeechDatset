@@ -10,6 +10,7 @@ from src.audio_data_utils import AudioDataProcessor
 from src.gui.utils import  getFileNameFromPath, getBackgroundColor, getTextColor
 from src.eeg_audio_data import EegAudioDataProcessor
 from src.gui.mapping_page import EegAudioMappingWindow
+import src.config as config
 
 class LoadEegThread(QThread):
     finished = pyqtSignal(object)
@@ -48,6 +49,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle('EEG and Audio Annotator')
         self.setGeometry(300, 100, 1200, 600)
+        self.setWindowIcon(QIcon(config.windowIconPath)) 
+
 
         self.eegData = None
         self.audioData = None

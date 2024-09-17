@@ -6,7 +6,7 @@ bidsDir = Path(currDir, 'BIDS_1')
 numWorkers = 20
 
 use_gui = True
-windowIconPath = ''
+windowIconPath = str(Path(currDir, 'src', 'gui','Images', 'icon.bmp'))
 audioPlayerDir = Path(currDir, 'SampleAudios')
 bidsEventsHeader = [
     'onset', 'duration', 'eegOnsetIndex', 

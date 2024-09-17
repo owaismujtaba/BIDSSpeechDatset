@@ -362,7 +362,7 @@ class EegAudioMappingWindow(QMainWindow):
     def extractEEGForPlay(self):
         self.eegEndIndex = self.eegStartIndex + int(self.audioDuration * self.eegSamplingRate)
         self.eegSampleData = self.eegAudioData.eegData.eegRawData[self.eegStartIndex: self.eegEndIndex]
-        print(self.eegSampleData.sahpe)
+        print(self.eegSampleData.shape)
         self.eegTimer.start(30)
 
     def updateAudioPlot(self):
